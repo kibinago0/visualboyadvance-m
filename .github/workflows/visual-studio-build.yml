@@ -47,9 +47,24 @@ jobs:
         with:
           arch: ${{ matrix.msvc_arch }}
 
+      - name: Install zip
+        shell: pwsh
+        run: |
+          choco install zip -y
+          $zip = (Get-Command zip.exe).Source
+          "ZIP_PROGRAM=$zip" | Out-File `
+            -FilePath $env:GITHUB_ENV `
+            -Encoding utf8 `
+            -Append          
+
       - name: Configure
         run: >-
-          cmake -B build -G ${{ matrix.cmake_generator }} -DVCPKG_TARGET_TRIPLET=${{ matrix.cmake_vcpkg_triplet }} ${{ matrix.cmake_build }} ${{ matrix.cmake_options }}
+          cmake -B build
+          -G ${{ matrix.cmake_generator }}
+          -DVCPKG_TARGET_TRIPLET=${{ matrix.cmake_vcpkg_triplet }}
+          -DZIP_PROGRAM="$env:ZIP_PROGRAM"
+          ${{ matrix.cmake_build }}
+          ${{ matrix.cmake_options }}
 
       - name: Build
         run: cmake --build build
